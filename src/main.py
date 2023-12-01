@@ -1,26 +1,38 @@
+import os
 from typing import Annotated
 from fastapi import FastAPI, Request, Response, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 import mysql.connector
 from mysql.connector import Error
+from dotenv import load_dotenv
+
+app = FastAPI()
+load_dotenv()
 
 templates = Jinja2Templates(directory="templates")
 
-app = FastAPI()
-
-DB_USER = "todo"
-DB_PASSWORD = "1234"
-DB_HOST = "localhost"
-DB_NAME = "todosdb"
-
 def create_db_connection():
+    connection = None
     try:
-        connection = mysql.connector.connect(user=DB_USER, password=DB_PASSWORD, host=DB_HOST, database=DB_NAME)
-        return connection
+        connection = mysql.connector.connect(
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            host=os.getenv('DB_HOST'),
+            database=os.getenv('DB_NAME')
+            )
+        print("connection successfull")
     except Error as e:
         print(f"Error: {e}")
         raise
+    return connection
+
+def reset_auto_increment():
+    connection = create_db_connection()
+    cursor = connection.cursor()
+    query = "ALTER TABLE todos AUTO_INCREMENT = 1"
+    cursor.execute(query)
+    connection.commit()
 
 @app.get("/", response_class=HTMLResponse)
 async def read_todos(request: Request):
@@ -59,8 +71,9 @@ async def delete_todo(todo_id: int):
     data = (todo_id,)
     cursor.execute(query, data)
     connection.commit()
+    reset_auto_increment()
     return RedirectResponse(url=f"/?message=ToDo {todo_id} deleted successfully", status_code=302)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=os.getenv('UVICORN_HOST'), port=8000)

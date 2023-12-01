@@ -4,3 +4,4 @@ v__pycache__/
 .DS_Store
 src/env/*
 env
+.env

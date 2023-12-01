@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS todosdb;
 
-CREATE USER IF NOT EXISTS 'todo'@'localhost' IDENTIFIED BY '1234';
+CREATE USER IF NOT EXISTS 'todo'@'localhost' IDENTIFIED BY 'nano123!';
 
-GRANT ALL PRIVILEGES ON todosdb.* TO 'todo'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE PRIVILEGES ON todosdb.* TO 'todo'@'localhost';
 
 FLUSH PRIVILEGES;
